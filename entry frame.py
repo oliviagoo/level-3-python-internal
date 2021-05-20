@@ -1,15 +1,34 @@
-#getting printing to work
-#version 2
+#job number and charge calculation
+#version 3
 from tkinter import *
+
+VIRUS_RATE = 0.8
+WOF_RATE = 100
+DIST_BASE_RATE = 10
+DIST_RATE = 0.5
+DIST_BASE_MIN = 5
+
+class Job:
+    def __init__(self, num, name, dist, virus, wof, minutes, charge):
+        self.num = num
+        self.name = name
+        self.dist = dist
+        self.virus = virus
+        self.wof = wof
+        self.minutes = minutes
+        self.charge = charge
 
 class JobManagementGUI:
     def __init__(self, parent):
 
+        self.job_list = []
+        self.next_id = len(self.job_list) + 1
         self.customer_name = StringVar()
         self.distance = IntVar()
         self.virus = IntVar()
         self.wof = IntVar()
         self.minutes = StringVar()
+        self.minutes.set("0")
 
         self.entry_frame = Frame(parent)
 
@@ -19,7 +38,7 @@ class JobManagementGUI:
         num_desc_label = Label(self.entry_frame, text = "Job number:")
         num_desc_label.grid(row = 1, column = 0)
 
-        self.num_label = Label(self.entry_frame, text = "[]")
+        self.num_label = Label(self.entry_frame, text = self.next_id)
         self.num_label.grid(row = 1, column = 1)
 
         name_desc_label = Label(self.entry_frame, text = "Customer name:")
@@ -55,21 +74,53 @@ class JobManagementGUI:
         self.entry_frame.grid(row = 0, column = 0)
 
     def printjob(self):
-        print(self.customer_name.get())
-        print(self.distance.get())
+        min_number = int(self.minutes.get())
         if self.virus.get() == 1:
-            print("Virus protection")
+            virus_selected = True
+        else:
+            virus_selected = False
+            min_number = 0
         if self.wof.get() == 1:
-            print("WOF and tune")
-        print(self.minutes.get())
-        print("----------")
+            wof_selected = True
+        else:
+            wof_selected = False
+
+        charge = self.calc_charge(min_number, virus_selected, wof_selected, self.distance.get())
+            
+        self.job_list.append(Job(self.next_id, self.customer_name.get(), self.distance.get(), virus_selected, wof_selected, min_number, charge))
+
+        print(self.job_list[-1].num)
+        print(self.job_list[-1].name)
+        print(self.job_list[-1].dist)
+        print(self.job_list[-1].virus)
+        print(self.job_list[-1].wof)
+        print(self.job_list[-1].minutes)
+        print(self.job_list[-1].charge)
+        print()
+
+        self.next_id = len(self.job_list) + 1
+        self.num_label.configure(text = self.next_id)
 
     def toggle_min(self):
         if self.virus.get() == 1:
             self.min_entry.configure(state = NORMAL)
         else:
             self.min_entry.configure(state = DISABLED)
-            self.minutes.set("")
+            self.minutes.set("0")
+
+    def calc_charge(self, minutes, virus, wof, dist):
+        charge = 0
+        if virus == True:
+            charge += VIRUS_RATE * minutes
+        if wof == True:
+            charge += WOF_RATE
+
+        charge += DIST_BASE_RATE
+        if dist > DIST_BASE_MIN:
+            dist -= DIST_BASE_MIN
+            charge += DIST_RATE * dist
+
+        return charge
 
 #main routine
 if __name__ == "__main__":
