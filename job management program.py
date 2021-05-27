@@ -1,5 +1,5 @@
-#combining entry and display frmaes
-#version 7
+#removing hard coding
+#version 8
 from tkinter import *
 
 #setting constants for calculating the job cost
@@ -26,11 +26,7 @@ class JobManagementGUI:
         #a list that keeps track of the Job objects
         self.job_list = []
         
-        #example jobs for testing
-        self.job_list.append(Job(1, "Olivia", 20, True, True, 38, 147.9))
-        self.job_list.append(Job(2, "Niki", 46, False, True, 0, 130.5))
-        self.job_list.append(Job(3, "Alastair", 1, True, True, 50, 150))
-        self.job_list.append(Job(4, "Alex", 4, True, False, 7, 15.6))
+        #suzy's logo
         self.logo_img = PhotoImage(file = "logo.gif")
         
         #variables for the entry frame
@@ -48,28 +44,29 @@ class JobManagementGUI:
         #display frame GUI
         self.display_frame = Frame(parent)
 
-        self.display_label = Label(self.display_frame, text = "Displaying Job: {}/{}".format(self.position + 1, len(self.job_list)))
+        self.display_label = Label(self.display_frame, text = "")
         self.display_label.grid(row = 0, column = 0, pady = 10)
 
         self.add_but = Button(self.display_frame, text = "New Job", command = self.new_job)
         self.add_but.grid(row = 0, column = 1)
 
-        disp_num_desc_label = Label(self.display_frame, text = "Job number:")
-        disp_num_desc_label.grid(row = 1, column = 0, sticky = E, padx = 10)
+        self.disp_num_desc_label = Label(self.display_frame, text = "Job number:")
+        self.disp_num_desc_label.grid(row = 1, column = 0, sticky = E, padx = 10)
 
-        self.job_num_label = Label(self.display_frame, text = self.job_list[self.position].num)
+        self.job_num_label = Label(self.display_frame, text = "")
         self.job_num_label.grid(row = 1, column = 1, sticky = W, padx = 10)
 
-        disp_name_desc_label = Label(self.display_frame, text = "Customer name:")
-        disp_name_desc_label.grid(row = 2, column = 0, sticky = E, padx = 10)
+        self.disp_name_desc_label = Label(self.display_frame, text = "Customer name:")
+        self.disp_name_desc_label.grid(row = 2, column = 0, sticky = E, padx = 10)
+        
 
-        self.name_label = Label(self.display_frame, text = self.job_list[self.position].name)
+        self.name_label = Label(self.display_frame, text = "")
         self.name_label.grid(row = 2, column = 1, sticky = W, padx = 10)
 
-        disp_charge_desc_label = Label(self.display_frame, text = "Job charge:")
-        disp_charge_desc_label.grid(row = 3, column = 0, sticky = E, padx = 10)
+        self.disp_charge_desc_label = Label(self.display_frame, text = "Job charge:")
+        self.disp_charge_desc_label.grid(row = 3, column = 0, sticky = E, padx = 10)
 
-        self.charge_label = Label(self.display_frame, text = "${:.2f}".format(self.job_list[self.position].charge))
+        self.charge_label = Label(self.display_frame, text = "")
         self.charge_label.grid(row = 3, column = 1, sticky = W, padx = 10)
 
         self.back_but = Button(self.display_frame, text = "Back", command = self.back, state = DISABLED)
@@ -78,10 +75,14 @@ class JobManagementGUI:
         self.next_but = Button(self.display_frame, text = "Next", command = self.next)
         self.next_but.grid(row = 4, column = 1, pady = 10, sticky = E, padx = 25)
 
+        self.no_job_label = Label(self.display_frame, text = "There are currently no jobs entered.\nPress New Job to enter a job!")
+
         logo = Label(self.display_frame, image = self.logo_img)
         logo.grid(row = 5, column = 0, columnspan = 2)
 
         self.display_frame.grid(row = 0, column = 0, padx = 5, pady = 5)
+
+        self.check_pos_update()
 
         #entry frame GUI
 
@@ -210,20 +211,35 @@ class JobManagementGUI:
     #this method ensures that the user doesn't scroll too far, and
     #actually updates the labels to show another job
     def check_pos_update(self):
-        if self.position == len(self.job_list) - 1:
-            self.next_but.configure(state = DISABLED)
-        else:
-            self.next_but.configure(state = NORMAL)
-            
-        if self.position == 0:
-            self.back_but.configure(state = DISABLED)
-        else:
-            self.back_but.configure(state = NORMAL)
+        #if there are jobs that have been inputted
+        if len(self.job_list) > 0:
+            #shows the necessary labels
+            self.disp_num_desc_label.grid()
+            self.disp_name_desc_label.grid()
+            self.disp_charge_desc_label.grid()
+            self.no_job_label.grid_remove()
 
-        self.display_label.configure(text = "Displaying Job: {}/{}".format(self.position + 1, len(self.job_list)))
-        self.job_num_label.configure(text = self.job_list[self.position].num)
-        self.name_label.configure(text = self.job_list[self.position].name)
-        self.charge_label.configure(text = "${:.2f}".format(self.job_list[self.position].charge))
+            #disabling and enabling buttons depending on the position
+            if self.position == len(self.job_list) - 1:
+                self.next_but.configure(state = DISABLED)
+            else:
+                self.next_but.configure(state = NORMAL)
+                
+            if self.position == 0:
+                self.back_but.configure(state = DISABLED)
+            else:
+                self.back_but.configure(state = NORMAL)
+
+            self.display_label.configure(text = "Displaying Job: {}/{}".format(self.position + 1, len(self.job_list)))
+            self.job_num_label.configure(text = self.job_list[self.position].num)
+            self.name_label.configure(text = self.job_list[self.position].name)
+            self.charge_label.configure(text = "${:.2f}".format(self.job_list[self.position].charge))
+        #if no jobs have been inputted, don't try and show jobs
+        else:
+            self.disp_num_desc_label.grid_remove()
+            self.disp_name_desc_label.grid_remove()
+            self.disp_charge_desc_label.grid_remove()
+            self.no_job_label.grid(row = 2, column = 0, columnspan = 2)
 
 
 #main routine
