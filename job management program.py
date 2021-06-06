@@ -1,5 +1,5 @@
-#entry-based user feedback changes
-#version 15
+#adding edit job option
+#version 16
 from tkinter import *
 
 #setting constants for calculating the job cost
@@ -38,6 +38,7 @@ class JobManagementGUI:
         self.minutes = StringVar()
         self.minutes.set("0")
 
+        self.mode = "s"
         #variable for the display frame
         self.position = 0
 
@@ -77,8 +78,14 @@ class JobManagementGUI:
 
         self.no_job_label = Label(self.display_frame, text = "There are currently no jobs entered.\nPress New Job to enter a job!")
 
+        self.edit_but = Button(self.display_frame, text = "Edit Job", command = self.edit)
+        self.edit_but.grid(row = 5, column = 0, pady = 10)
+
+        self.all_but = Button(self.display_frame, text = "View All")
+        self.all_but.grid(row = 5, column = 1, pady = 10)
+
         logo = Label(self.display_frame, image = self.logo_img)
-        logo.grid(row = 5, column = 0, columnspan = 2)
+        logo.grid(row = 6, column = 0, columnspan = 2)
 
         self.display_frame.grid(row = 0, column = 0, padx = 5, pady = 5)
 
@@ -130,6 +137,8 @@ class JobManagementGUI:
         self.submit_but = Button(self.entry_frame, text = "Submit", command = self.check_job)
         self.submit_but.grid(row = 8, column = 1, pady = 10)
 
+        self.update_but = Button(self.entry_frame, text = "Update Job", command = self.check_job)
+
         self.confirmation_label = Label(self.entry_frame, text = "", fg = "green")
         self.confirmation_label.grid(row = 9, column = 0, columnspan = 2)
 
@@ -137,6 +146,10 @@ class JobManagementGUI:
     def new_job(self):
         self.display_frame.grid_remove()
         self.entry_frame.grid(row = 0, column = 0, padx = 10, pady = 5)
+        self.update_but.grid_remove()
+        self.submit_but.grid(row = 8, column = 1, pady = 10)
+        self.num_label.configure(text = self.next_id)
+        self.mode = "s"
 
     #empties the entries on the entry frame and unticks all checkboxes
     def clear_entry_fields(self):
@@ -195,11 +208,17 @@ class JobManagementGUI:
                 if virus_selected == True:
                     valid_minutes = self.check_int(self.minutes.get())
                     if valid_minutes == True:
-                        self.submit_job(self.minutes.get(), virus_selected, wof_selected)
+                        if self.mode == "s":
+                            self.submit_job(self.minutes.get(), virus_selected, wof_selected)
+                        else:
+                            self.update_job(self.minutes.get(), virus_selected, wof_selected)
                     else:
                         self.confirmation_label.configure(text = "Please enter a whole number greater than 0\nfor minutes spent on Virus Protection", fg = "red")
                 else:
-                    self.submit_job(self.minutes.get(), virus_selected, wof_selected)
+                    if self.mode == "s":
+                        self.submit_job(self.minutes.get(), virus_selected, wof_selected)
+                    else:
+                        self.update_job(self.minutes.get(), virus_selected, wof_selected)
             else:
                 self.confirmation_label.configure(text = "Please tick either Virus Protection and/or WOF and tune", fg = "red")
         else:
@@ -240,6 +259,42 @@ class JobManagementGUI:
         self.position -= 1
         self.check_pos_update()
 
+    #this method allows the user to edit a specific job
+    def edit(self):
+        self.new_job()
+        self.mode = "e"
+        self.num_label.configure(text = self.position + 1)
+        self.customer_name.set(self.job_list[self.position].name)
+        self.distance.set(self.job_list[self.position].dist)
+        if self.job_list[self.position].virus == True:
+            self.virus.set(1)
+            self.min_entry.configure(state = NORMAL)
+        else:
+            self.virus.set(0)
+            self.min_entry.configure(state = DISABLED)
+        if self.job_list[self.position].wof == True:
+            self.wof.set(1)
+        else:
+            self.wof.set(0)
+        self.minutes.set(self.job_list[self.position].minutes)
+        
+        self.confirmation_label.configure(text = "")
+        self.submit_but.grid_remove()
+        self.update_but.grid(row = 8, column = 1, pady = 10)
+        
+
+    #this method updates jobs after they have been edited
+    def update_job(self, min_number, virus_selected, wof_selected):
+        min_number = int(self.minutes.get())
+        job_update = self.job_list[self.position]
+        job_update.name = self.customer_name.get().title().strip()
+        job_update.dist = self.distance.get()
+        job_update.virus = virus_selected
+        job_update.wof = wof_selected
+        job_update.minutes = min_number
+        job_update.charge = self.calc_charge(min_number, virus_selected, wof_selected, self.distance.get())
+        self.confirmation_label.configure(text = "Job {} has been updated!".format(self.position + 1), fg = "green")
+
     #this method ensures that the user doesn't scroll too far, and
     #actually updates the labels to show another job
     def check_pos_update(self):
@@ -250,6 +305,9 @@ class JobManagementGUI:
             self.disp_name_desc_label.grid()
             self.disp_charge_desc_label.grid()
             self.no_job_label.grid_remove()
+
+            self.edit_but.configure(state = NORMAL)
+            self.all_but.configure(state = NORMAL)
 
             #disabling and enabling buttons depending on the position
             if self.position == len(self.job_list) - 1:
@@ -268,6 +326,8 @@ class JobManagementGUI:
             self.charge_label.configure(text = "${:.2f}".format(self.job_list[self.position].charge))
         #if no jobs have been inputted, don't try and show jobs
         else:
+            self.edit_but.configure(state = DISABLED)
+            self.all_but.configure(state = DISABLED)
             self.disp_num_desc_label.grid_remove()
             self.disp_name_desc_label.grid_remove()
             self.disp_charge_desc_label.grid_remove()
