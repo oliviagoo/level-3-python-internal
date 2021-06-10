@@ -38,8 +38,8 @@ class JobManagementGUI:
         self.wof = IntVar()
         self.minutes = StringVar()
         self.minutes.set("0")
-
         self.mode = "s"
+        
         #variable for the display frame
         self.position = 0
 
@@ -183,7 +183,7 @@ class JobManagementGUI:
         self.num_label.configure(text = self.next_id)
         self.mode = "s"
 
-    #empties the entries on the entry frame and unticks all checkboxes
+    #this method empties the entries on the entry frame and unticks all checkboxes
     def clear_entry_fields(self):
         self.customer_name.set("")
         self.distance.set(0)
@@ -200,7 +200,7 @@ class JobManagementGUI:
         self.clear_entry_fields()
         self.check_pos_update()
 
-    #prevents error messages turning strings into ints
+    #this method prevents error messages turning strings into ints
     #and makes sure that the int is above 0
     def check_int(self, number):
         try:
